@@ -1,0 +1,129 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}Depter · {% t 'nav_home' %}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><h1>{% t 'hello' name=who %}</h1><p class="sub">{% t 'dash_sub' %}</p></div>
+  <a class="btn btn-debt" href="{% url 'debt_add' %}"><svg class="ic"><use href="#i-plus"/></svg>{% t 'add_debt' %}</a>
+</div>
+
+<div class="grid g4">
+  <div class="card kpi"><span class="ico r"><svg class="ic"><use href="#i-card"/></svg></span>
+    <div><small>{% t 'kpi_total' %}</small><b class="red"><span data-count="{{ owed }}">{{ owed|money }}</span> <em>{% t 'som' %}</em></b></div></div>
+  <div class="card kpi"><span class="ico b"><svg class="ic"><use href="#i-up"/></svg></span>
+    <div><small>{% t 'kpi_given' %}</small><b><span data-count="{{ given }}">{{ given|money }}</span> <em>{% t 'som' %}</em></b></div></div>
+  <div class="card kpi"><span class="ico g"><svg class="ic"><use href="#i-down"/></svg></span>
+    <div><small>{% t 'kpi_paid' %}</small><b class="green"><span data-count="{{ paid }}">{{ paid|money }}</span> <em>{% t 'som' %}</em></b></div></div>
+  <div class="card kpi"><span class="ico v"><svg class="ic"><use href="#i-users"/></svg></span>
+    <div><small>{% t 'kpi_clients' %}</small><b><span data-count="{{ debtors_count }}">{{ debtors_count }}</span></b></div></div>
+</div>
+
+<div class="split">
+  <div class="card">
+    <div class="pagehead" style="margin-bottom:0">
+      <div><h3>{% t 'chart_title' %}</h3><p class="sub">{% t 'chart_hint' %}</p></div>
+      <div class="tabs">{% for p, label in period_tabs %}<a href="?days={{ p }}" class="{% if p == days_n %}on{% endif %}">{{ label }}</a>{% endfor %}</div>
+    </div>
+    <div class="sums">
+      <div class="sum"><i class="r"></i><div><small>{% t 'period_given' %}</small><b class="red">{{ period_given|money }} {% t 'som' %}</b></div></div>
+      <div class="sum"><i class="g"></i><div><small>{% t 'period_paid' %}</small><b class="green">{{ period_paid|money }} {% t 'som' %}</b></div></div>
+    </div>
+    {% if has_data %}<div class="chartbox"><canvas id="chart"></canvas></div>
+    {% else %}<div class="empty">📊<br>{% t 'no_data' %}</div>{% endif %}
+  </div>
+
+  <div class="card ringcard">
+    <h3>{% t 'ring_title' %}</h3>
+    <div class="ring" style="--p:{{ ring }}"><b>{{ ring }}%</b></div>
+    <p class="sub" style="margin-top:18px">{% t 'ring_caption' n=ring %}</p>
+  </div>
+</div>
+
+<div class="grid g2">
+  <div class="card">
+    <div class="pagehead" style="margin-bottom:6px"><h3>{% t 'top_title' %}</h3><a href="{% url 'customer_list' %}"><b>{% t 'all_debtors' %}</b></a></div>
+    {% for c in top_debtors %}
+    <div class="row" style="align-items:flex-start">
+      <span class="av" style="--h:{{ c.pk|hue }}">{{ c.name|initial }}</span>
+      <div class="grow">
+        <div style="display:flex;justify-content:space-between;gap:10px">
+          <a href="{% url 'customer_detail' c.pk %}" style="color:var(--text);font-weight:700">{{ c.name }}</a>
+          <span class="amt red">{{ c.balance|money }} {% t 'som' %}</span>
+        </div>
+        <div class="bar"><i style="--w:{{ c.pct }}%"></i></div>
+      </div>
+    </div>
+    {% empty %}<div class="empty">{% t 'no_debts' %}</div>{% endfor %}
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:6px">{% t 'recent_title' %}</h3>
+    {% for t in recent %}
+    <div class="row">
+      <span class="evi {% if t.kind == 'debt' %}r{% else %}g{% endif %}"><svg class="ic"><use href="#i-{% if t.kind == 'debt' %}up{% else %}down{% endif %}"/></svg></span>
+      <div class="grow"><b>{{ t.customer.name }}</b>
+        <small>{% if t.kind == 'debt' %}{% t 'ev_debt' %}{% else %}{% t 'ev_pay' %}{% endif %} · {{ t.created_at|date:"d.m H:i" }}</small></div>
+      <span class="amt {% if t.kind == 'debt' %}red{% else %}green{% endif %}">{% if t.kind == 'debt' %}+{% else %}−{% endif %}{{ t.amount|money }}</span>
+    </div>
+    {% empty %}<div class="empty">{% t 'no_records' %}</div>{% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if has_data %}
+{{ chart|json_script:"chart-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  var el=document.getElementById('chart'); if(!el||!window.Chart) return;
+  var D=JSON.parse(document.getElementById('chart-data').textContent);
+  var loc=Intl.DateTimeFormat.supportedLocalesOf([D.lang]).length?D.lang:'ru';
+  var short=D.days.length<=7;
+  function day(iso,long){
+    var d=new Date(iso+'T00:00:00');
+    var o=long?{weekday:'long',day:'numeric',month:'long'}:(short?{weekday:'short',day:'numeric'}:{day:'numeric',month:'short'});
+    return d.toLocaleDateString(loc,o);
+  }
+  function money(n){return Math.round(n).toLocaleString('en-US').replace(/,/g,'\u00a0')+' '+D.L.som}
+  function axis(v){return v>=1000?(v/1000).toLocaleString('en-US')+' '+D.L.thousand:v}
+  var chart;
+  function render(){
+    var cs=getComputedStyle(document.documentElement);
+    var c=function(n){return cs.getPropertyValue(n).trim()};
+    var red=c('--red'),grn=c('--green'),muted=c('--muted'),grid=c('--grid');
+    function grad(top,bot){return function(ctx){
+      var a=ctx.chart.chartArea; if(!a) return top;
+      var g=ctx.chart.ctx.createLinearGradient(0,a.top,0,a.bottom);
+      g.addColorStop(0,top); g.addColorStop(1,bot); return g;
+    }}
+    if(chart) chart.destroy();
+    chart=new Chart(el,{
+      type:'bar',
+      data:{labels:D.days.map(function(d){return day(d,false)}),datasets:[
+        {label:D.L.debt,data:D.debts,backgroundColor:grad(red,'rgba(249,115,22,.55)'),borderRadius:9,borderSkipped:false,maxBarThickness:26},
+        {label:D.L.paid,data:D.payments,backgroundColor:grad(grn,'rgba(20,184,166,.5)'),borderRadius:9,borderSkipped:false,maxBarThickness:26}
+      ]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        interaction:{mode:'index',intersect:false},
+        animation:{duration:900,easing:'easeOutQuart'},
+        plugins:{legend:{display:false},tooltip:{
+          padding:12,cornerRadius:12,titleFont:{weight:'700'},bodyFont:{size:14},
+          callbacks:{
+            title:function(i){return day(D.days[i[0].dataIndex],true)},
+            label:function(i){return '  '+i.dataset.label+': '+money(i.parsed.y)},
+            labelColor:function(i){return {backgroundColor:i.datasetIndex?grn:red,borderColor:'transparent',borderRadius:4}}
+          }}},
+        scales:{
+          x:{grid:{display:false},ticks:{color:muted,maxRotation:0,autoSkip:true}},
+          y:{beginAtZero:true,border:{display:false},grid:{color:grid},ticks:{color:muted,callback:axis,maxTicksLimit:5}}
+        }
+      }
+    });
+  }
+  render();
+  window.addEventListener('themechange',render);
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,69 @@
+{% load ui %}{% lang as LANG %}<!doctype html>
+<html lang="{{ LANG }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#10b981">
+<title>{% block title %}Depter{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>(function(){try{var t=localStorage.getItem('depter-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)}catch(e){document.documentElement.setAttribute('data-theme','light')}})()</script>
+{% include "partials/style.html" %}
+</head>
+<body>
+{% include "partials/icons.html" %}
+{% with u=request.resolver_match.url_name %}
+<header class="top"><div class="in">
+  <a class="logo" href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'login' %}{% endif %}"><i>D</i><span>Depter</span></a>
+  {% if user.is_authenticated %}
+  <nav class="links">
+    <a href="{% url 'dashboard' %}" class="{% if u == 'dashboard' %}on{% endif %}"><svg class="ic"><use href="#i-home"/></svg>{% t 'nav_home' %}</a>
+    <a href="{% url 'customer_list' %}" class="{% if 'customer' in u %}on{% endif %}"><svg class="ic"><use href="#i-users"/></svg>{% t 'nav_debtors' %}</a>
+    {% if user.is_owner %}
+    <a href="{% url 'branch_list' %}" class="{% if 'branch' in u %}on{% endif %}"><svg class="ic"><use href="#i-pin"/></svg>{% t 'nav_branches' %}</a>
+    <a href="{% url 'worker_list' %}" class="{% if 'worker' in u %}on{% endif %}"><svg class="ic"><use href="#i-userc"/></svg>{% t 'nav_workers' %}</a>
+    {% endif %}
+  </nav>
+  {% else %}
+  <nav class="links">
+    <a href="{% url 'login' %}" class="{% if u == 'login' %}on{% endif %}">{% t 'nav_login' %}</a>
+    <a href="{% url 'register' %}" class="{% if u == 'register' %}on{% endif %}">{% t 'nav_register' %}</a>
+  </nav>
+  {% endif %}
+  <span class="sp"></span>
+  <div class="seg">
+    <a href="{% url 'set_lang' 'ru' %}?next={{ request.get_full_path|urlencode }}" class="{% if LANG == 'ru' %}on{% endif %}">RU</a>
+    <a href="{% url 'set_lang' 'ky' %}?next={{ request.get_full_path|urlencode }}" class="{% if LANG == 'ky' %}on{% endif %}">KY</a>
+  </div>
+  <button type="button" class="iconbtn" data-theme-toggle title="{% t 'theme_toggle' %}" aria-label="{% t 'theme_toggle' %}">
+    <svg class="ic i-sun"><use href="#i-sun"/></svg><svg class="ic i-moon"><use href="#i-moon"/></svg>
+  </button>
+  {% if user.is_authenticated %}
+  <div class="me"><b>{{ user.first_name|default:user.username }}</b><small>{% if user.is_owner %}{% t 'role_owner' %}{% else %}{% t 'role_seller' %}{% endif %}</small></div>
+  <form method="post" action="{% url 'logout' %}" class="logout">{% csrf_token %}
+    <button class="iconbtn" title="{% t 'nav_logout' %}" aria-label="{% t 'nav_logout' %}"><svg class="ic"><use href="#i-out"/></svg></button>
+  </form>
+  {% endif %}
+</div></header>
+
+{% if messages %}<div class="toasts">{% for m in messages %}<div class="toast"><svg class="ic"><use href="#i-check"/></svg><span>{{ m }}</span></div>{% endfor %}</div>{% endif %}
+
+<main>{% block content %}{% endblock %}</main>
+
+{% if user.is_authenticated %}
+<nav class="bottom">
+  <a href="{% url 'dashboard' %}" class="{% if u == 'dashboard' %}on{% endif %}"><svg class="ic"><use href="#i-home"/></svg>{% t 'nav_home' %}</a>
+  <a href="{% url 'customer_list' %}" class="{% if 'customer' in u %}on{% endif %}"><svg class="ic"><use href="#i-users"/></svg>{% t 'nav_debtors' %}</a>
+  <a href="{% url 'debt_add' %}" class="plus"><span class="pl"><svg class="ic"><use href="#i-plus"/></svg></span>{% t 'nav_add' %}</a>
+  {% if user.is_owner %}
+  <a href="{% url 'branch_list' %}" class="{% if 'branch' in u %}on{% endif %}"><svg class="ic"><use href="#i-pin"/></svg>{% t 'nav_branches' %}</a>
+  <a href="{% url 'worker_list' %}" class="{% if 'worker' in u %}on{% endif %}"><svg class="ic"><use href="#i-userc"/></svg>{% t 'nav_workers' %}</a>
+  {% endif %}
+</nav>
+{% endif %}
+{% endwith %}
+{% include "partials/scripts.html" %}
+{% block scripts %}{% endblock %}
+</body>
+</html>

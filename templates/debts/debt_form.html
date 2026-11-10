@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% load ui %}
+{% block content %}
+<div class="card narrow">
+  <h1 class="h2" style="margin-bottom:18px">{% t 'title_new_debt' %}</h1>
+  <form method="post">{% csrf_token %}
+    {% include "partials/fields.html" %}
+    <button class="btn btn-debt" style="width:100%">{% t 'save_debt' %}</button>
+  </form>
+  <datalist id="names">{% for n in names %}<option value="{{ n }}">{% endfor %}</datalist>
+</div>
+{% endblock %}

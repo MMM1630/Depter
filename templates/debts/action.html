@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load ui %}
+{% block content %}
+<div class="card narrow">
+  <div class="whohead">
+    <span class="av lg" style="--h:{{ customer.pk|hue }}">{{ customer.name|initial }}</span>
+    <div><h1 class="h2">{% t 'title_add_to' %}</h1><div class="sub" style="margin:2px 0 0">{{ customer.name }}</div></div>
+  </div>
+  {% if customer.balance > 0 %}<div class="owebox"><small>{% t 'repay_now' %}</small><b class="red">{{ customer.balance|money }} {% t 'som' %}</b></div>{% else %}<div style="height:18px"></div>{% endif %}
+  <form method="post">{% csrf_token %}
+    {% include "partials/fields.html" %}
+    <div class="actions">
+      <button class="btn btn-debt">{% t 'save_debt' %}</button>
+      <a class="btn btn-ghost" href="javascript:history.back()">{% t 'cancel' %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% load ui %}
+{% block content %}
+<div class="card narrow" style="margin-top:30px">
+  <h1 class="h2">{% t 'login_title' %}</h1>
+  <p class="sub" style="margin-bottom:20px">{% t 'login_sub' %}</p>
+  <form method="post">{% csrf_token %}
+    {% include "partials/fields.html" %}
+    <button class="btn" style="width:100%">{% t 'login_btn' %}</button>
+  </form>
+  <p class="sub" style="margin-top:18px;text-align:center">{% t 'no_account' %} <a href="{% url 'register' %}"><b>{% t 'reg_link' %}</b></a></p>
+</div>
+{% endblock %}

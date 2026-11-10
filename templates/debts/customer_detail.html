@@ -1,0 +1,42 @@
+{% extends "base.html" %}{% load ui %}
+{% block content %}
+<div class="card">
+  <div class="hero">
+    <span class="av lg" style="--h:{{ object.pk|hue }}">{{ object.name|initial }}</span>
+    <div class="grow">
+      <h1 class="h2">{{ object.name }}</h1>
+      <div class="sub" style="margin:0 0 8px">
+        {% if object.phone %}<a href="tel:{{ object.phone }}">📞 {{ object.phone }}</a> · {% endif %}{{ object.branch }}
+      </div>
+      <div class="bal {% if object.balance > 0 %}red{% else %}green{% endif %}">
+        {% if object.balance > 0 %}{% t 'owes' n=object.balance|money %}{% else %}✓ {% t 'no_debt' %}{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <a class="btn btn-debt" href="{% url 'customer_debt' object.pk %}"><svg class="ic"><use href="#i-plus"/></svg>{% t 'add_debt' %}</a>
+    {% if object.balance > 0 %}<a class="btn" href="{% url 'customer_repay' object.pk %}"><svg class="ic"><use href="#i-check"/></svg>{% t 'repay_debt' %}</a>{% endif %}
+  </div>
+</div>
+
+<h3 style="margin:26px 4px 12px;font-size:20px">{% t 'history' %}</h3>
+{% for day in days %}
+<div class="card">
+  <div class="dayhead">
+    <b>{{ day.date|date:"d.m.Y" }}</b>
+    <span>
+      {% if day.debt %}<span class="chip r">{% t 'took' %} {{ day.debt|money }}</span>{% endif %}
+      {% if day.paid %}<span class="chip g">{% t 'returned' %} {{ day.paid|money }}</span>{% endif %}
+    </span>
+  </div>
+  {% for t in day.items %}
+  <div class="row">
+    <span class="evi {% if t.kind == 'debt' %}r{% else %}g{% endif %}"><svg class="ic"><use href="#i-{% if t.kind == 'debt' %}up{% else %}down{% endif %}"/></svg></span>
+    <div class="grow"><b>{% if t.kind == 'debt' %}{% t 'ev_debt' %}{% else %}{% t 'ev_pay' %}{% endif %}</b>
+      <small>{{ t.created_at|time:"H:i" }}{% if t.note %} · {{ t.note|note_text }}{% endif %} · {{ t.created_by|default:"—" }}</small></div>
+    <span class="amt {% if t.kind == 'debt' %}red{% else %}green{% endif %}">{% if t.kind == 'debt' %}+{% else %}−{% endif %}{{ t.amount|money }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% empty %}<div class="card empty">{% t 'no_records' %}</div>{% endfor %}
+{% endblock %}

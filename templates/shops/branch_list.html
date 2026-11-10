@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load ui %}
+{% block content %}
+<div class="pagehead">
+  <h1>{% t 'branches' %}</h1>
+  <a class="btn" href="{% url 'branch_create' %}"><svg class="ic"><use href="#i-plus"/></svg>{% t 'add_branch' %}</a>
+</div>
+<div class="card">
+  {% for b in object_list %}
+  <div class="row">
+    <span class="evi g"><svg class="ic"><use href="#i-pin"/></svg></span>
+    <div class="grow"><b>{{ b.name }}</b><small>{{ b.address|default:"—" }}</small></div>
+    <a class="btn btn-ghost btn-sm" href="{% url 'branch_update' b.pk %}">{% t 'edit' %}</a>
+    <a class="btn btn-debt btn-sm" href="{% url 'branch_delete' b.pk %}">{% t 'delete' %}</a>
+  </div>
+  {% empty %}<div class="empty">{% t 'no_branches' %}</div>{% endfor %}
+</div>
+{% endblock %}

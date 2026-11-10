@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% load ui %}
+{% block content %}
+<div class="card narrow">
+  <h1 class="h2" style="margin-bottom:18px">{{ title }}</h1>
+  <form method="post">{% csrf_token %}
+    {% include "partials/fields.html" %}
+    <div class="actions">
+      <button class="btn">{% t 'save' %}</button>
+      <a class="btn btn-ghost" href="javascript:history.back()">{% t 'cancel' %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

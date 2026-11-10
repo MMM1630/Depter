@@ -1,0 +1,13 @@
+{{ form.non_field_errors }}
+{% for f in form %}
+  {% if f.is_hidden %}{{ f }}
+  {% elif f.field.widget.input_type == 'checkbox' %}
+    <label class="opt">{{ f }} <span>{{ f.label }}</span></label>
+  {% else %}
+    <div class="field">
+      <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+      {{ f }}{{ f.errors }}
+      {% if f.help_text %}<div class="help">{{ f.help_text }}</div>{% endif %}
+    </div>
+  {% endif %}
+{% endfor %}
