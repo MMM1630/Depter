@@ -1,8 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
-from apps.shops.models import Branch
 from .i18n import tr
+from .mixins import visible_branches, writable_branches
 from .models import User
 
 
@@ -29,6 +29,8 @@ class LoginForm(AuthenticationForm):
 
 
 class RegisterForm(UserCreationForm):
+    organization_name = forms.CharField(max_length=120)
+
     class Meta(UserCreationForm.Meta):
         model = User
         fields = ("username", "first_name")
@@ -36,8 +38,10 @@ class RegisterForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         _auth_fields(self)
+        self.fields["organization_name"].label = tr("f_org")
         self.fields["first_name"].label = tr("f_your_name")
         self.fields["first_name"].required = True
+        self.order_fields(["organization_name", "first_name", "username", "password1", "password2"])
 
 
 class WorkerCreateForm(UserCreationForm):
@@ -47,15 +51,17 @@ class WorkerCreateForm(UserCreationForm):
 
     def __init__(self, *args, owner, **kwargs):
         super().__init__(*args, **kwargs)
+        self.owner = owner
         _auth_fields(self)
         self.fields["first_name"].label = tr("f_name")
         self.fields["branch"].label = tr("f_branch")
-        self.fields["branch"].queryset = Branch.objects.filter(owner=owner)
+        self.fields["branch"].queryset = writable_branches(owner)
         self.fields["branch"].required = True
 
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = User.Role.SELLER
+        user.organization_id = self.owner.organization_id
         if commit:
             user.save()
         return user
@@ -71,5 +77,5 @@ class WorkerEditForm(forms.ModelForm):
         self.fields["first_name"].label = tr("f_name")
         self.fields["branch"].label = tr("f_branch")
         self.fields["is_active"].label = tr("f_active")
-        self.fields["branch"].queryset = Branch.objects.filter(owner=owner)
+        self.fields["branch"].queryset = visible_branches(owner)
         self.fields["branch"].required = True

@@ -172,3 +172,6 @@ T.update({
     "f_date": ("Дата долга", "Карыздын күнү"),
     "err_future": ("Дата не может быть в будущем.", "Күн келечекте болушу мүмкүн эмес."),
 })
+
+from .i18n_extra import EXTRA as _EXTRA  # noqa: E402
+T.update(_EXTRA)

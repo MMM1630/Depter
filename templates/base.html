@@ -23,6 +23,7 @@
     {% if user.is_owner %}
     <a href="{% url 'branch_list' %}" class="{% if 'branch' in u %}on{% endif %}"><svg class="ic"><use href="#i-pin"/></svg>{% t 'nav_branches' %}</a>
     <a href="{% url 'worker_list' %}" class="{% if 'worker' in u %}on{% endif %}"><svg class="ic"><use href="#i-userc"/></svg>{% t 'nav_workers' %}</a>
+    <a href="{% url 'audit_list' %}" class="{% if u == 'audit_list' %}on{% endif %}"><svg class="ic"><use href="#i-trend"/></svg>{% t 'nav_audit' %}</a>
     {% endif %}
   </nav>
   {% else %}

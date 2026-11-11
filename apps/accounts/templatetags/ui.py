@@ -1,6 +1,6 @@
 from django import template
 
-from ..i18n import fmt_money, get_lang, tr
+from ..i18n import T, fmt_money, get_lang, tr
 
 register = template.Library()
 
@@ -18,6 +18,14 @@ def t(key, **kw):
 @register.simple_tag
 def lang():
     return get_lang()
+
+
+@register.simple_tag(takes_context=True)
+def qs_page(context, page):
+    """Строка запроса с новым номером страницы, остальные параметры сохраняются."""
+    params = context["request"].GET.copy()
+    params["page"] = page
+    return params.urlencode()
 
 
 @register.filter
@@ -46,3 +54,9 @@ def initial(name):
 def note_text(note):
     key = NOTE_MAP.get(note)
     return tr(key) if key else note
+
+
+@register.filter
+def action_label(action):
+    key = "act_" + str(action).replace(".", "_")
+    return tr(key) if key in T else action

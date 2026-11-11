@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% load ui %}
+{% block content %}
+<div class="pagehead"><div><h1>{% t 'audit_title' %}</h1><p class="sub">{% t 'audit_hint' %}</p></div></div>
+<div class="card">
+  {% for e in object_list %}
+  <div class="row">
+    <div class="grow">
+      <b>{{ e.action|action_label }}</b>
+      <small>{{ e.created_at|date:"d.m.Y H:i" }} · {{ e.username|default:"—" }}{% if e.ip %} · {{ e.ip }}{% endif %}</small>
+      {% if e.details %}<small>{% for k, v in e.details.items %}{{ k }}: {{ v }}{% if not forloop.last %}; {% endif %}{% endfor %}</small>{% endif %}
+    </div>
+  </div>
+  {% empty %}<div class="empty">{% t 'no_records' %}</div>{% endfor %}
+</div>
+{% include "partials/pagination.html" %}
+{% endblock %}

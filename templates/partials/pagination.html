@@ -1,0 +1,8 @@
+{% load ui %}
+{% if page_obj.has_other_pages %}
+<div style="display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;margin:18px 0">
+  {% if page_obj.has_previous %}<a class="btn btn-ghost btn-sm" href="?{% qs_page page_obj.previous_page_number %}">← {% t 'page_prev' %}</a>{% endif %}
+  <span class="sub">{% t 'page_of' n=page_obj.number m=page_obj.paginator.num_pages %}</span>
+  {% if page_obj.has_next %}<a class="btn btn-ghost btn-sm" href="?{% qs_page page_obj.next_page_number %}">{% t 'page_next' %} →</a>{% endif %}
+</div>
+{% endif %}

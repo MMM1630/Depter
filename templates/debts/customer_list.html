@@ -1,7 +1,8 @@
 {% extends "base.html" %}{% load ui %}
 {% block content %}
 <div class="pagehead">
-  <div><h1>{% t 'debtors' %}</h1><p class="sub">{% t 'list_total' %}: <b class="red">{{ total|money }} {% t 'som' %}</b></p></div>
+  <div><h1>{% if archived %}{% t 'archive_title' %}{% else %}{% t 'debtors' %}{% endif %}</h1>
+    <p class="sub">{% t 'list_total' %}: <b class="red">{{ total|money }} {% t 'som' %}</b></p></div>
   <a class="btn btn-debt" href="{% url 'debt_add' %}"><svg class="ic"><use href="#i-plus"/></svg>{% t 'add_debt' %}</a>
 </div>
 
@@ -9,25 +10,41 @@
   <form method="get" class="searchbar">
     <div class="sw"><svg class="ic"><use href="#i-search"/></svg><input name="q" value="{{ q }}" placeholder="{% t 'search_ph' %}"></div>
     {% if show_all %}<input type="hidden" name="all" value="1">{% endif %}
+    {% if archived %}<input type="hidden" name="archived" value="1">{% endif %}
     <button class="btn">{% t 'search' %}</button>
   </form>
   <p class="sub" style="margin:0 0 6px">
-    {% if show_all %}<a href="?{% if q %}q={{ q|urlencode }}{% endif %}">{% t 'only_debt' %}</a>
-    {% else %}<a href="?all=1{% if q %}&q={{ q|urlencode }}{% endif %}">{% t 'show_all' %}</a>{% endif %}
+    {% if archived %}<a href="?">{% t 'only_debt' %}</a>
+    {% elif show_all %}<a href="?{% if q %}q={{ q|urlencode }}{% endif %}">{% t 'only_debt' %}</a> · <a href="?archived=1">{% t 'show_archived' %}</a>
+    {% else %}<a href="?all=1{% if q %}&q={{ q|urlencode }}{% endif %}">{% t 'show_all' %}</a> · <a href="?archived=1">{% t 'show_archived' %}</a>{% endif %}
   </p>
 
   {% for c in object_list %}
   <div class="debtor">
     <span class="av" style="--h:{{ c.pk|hue }}">{{ c.name|initial }}</span>
     <div class="who"><a href="{% url 'customer_detail' c.pk %}">{{ c.name }}</a>
+      {% if c.is_blocked %}<span class="chip r">{% t 'blocked_tag' %}</span>{% endif %}
       {% if c.phone %}<small>📞 {{ c.phone }}</small>{% endif %}
       {% if user.is_owner %}<small>{{ c.branch }}</small>{% endif %}</div>
     <div class="money {% if c.balance > 0 %}red{% else %}green{% endif %}">{{ c.balance|money }} <small>{% t 'som' %}</small></div>
     <div class="acts">
-      <a class="btn btn-debt btn-sm" href="{% url 'customer_debt' c.pk %}?next={{ request.get_full_path|urlencode }}"><svg class="ic"><use href="#i-plus"/></svg>{% t 'add_debt' %}</a>
+      {% if not c.is_archived and not c.is_blocked %}<a class="btn btn-debt btn-sm" href="{% url 'customer_debt' c.pk %}?next={{ request.get_full_path|urlencode }}"><svg class="ic"><use href="#i-plus"/></svg>{% t 'add_debt' %}</a>{% endif %}
       {% if c.balance > 0 %}<a class="btn btn-sm" href="{% url 'customer_repay' c.pk %}?next={{ request.get_full_path|urlencode }}"><svg class="ic"><use href="#i-check"/></svg>{% t 'repay_debt' %}</a>{% endif %}
     </div>
   </div>
   {% empty %}<div class="empty">🎉<br>{% t 'no_debts' %}</div>{% endfor %}
 </div>
+
+{% include "partials/pagination.html" %}
+
+{% if user.is_owner %}
+<div class="card">
+  <h3 style="margin-bottom:12px">{% t 'export_csv' %}</h3>
+  <form method="get" action="{% url 'export_csv' %}" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+    <div style="flex:1;min-width:150px"><label class="sub">{% t 'export_from' %}</label><input type="date" name="from" value="{{ month_ago|date:'Y-m-d' }}"></div>
+    <div style="flex:1;min-width:150px"><label class="sub">{% t 'export_to' %}</label><input type="date" name="to" value="{{ today|date:'Y-m-d' }}"></div>
+    <button class="btn btn-ghost">{% t 'export_csv' %}</button>
+  </form>
+</div>
+{% endif %}
 {% endblock %}

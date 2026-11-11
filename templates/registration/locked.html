@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% load ui %}
+{% block content %}
+<div class="card narrow" style="margin-top:30px;text-align:center">
+  <h1 class="h2">{% t 'locked_title' %}</h1>
+  <p class="sub" style="margin:10px 0 20px">{% t 'locked_text' %}</p>
+  <a class="btn" href="{% url 'login' %}">{% t 'login_title' %}</a>
+</div>
+{% endblock %}

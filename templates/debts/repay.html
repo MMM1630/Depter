@@ -7,6 +7,7 @@
   </div>
   <div class="owebox"><small>{% t 'repay_now' %}</small><b class="red">{{ customer.balance|money }} {% t 'som' %}</b></div>
   <form method="post">{% csrf_token %}
+    {{ form.token }}{{ form.token.errors }}
     {{ form.non_field_errors }}
     <label class="opt">
       <input type="radio" name="mode" value="full" {% if form.mode.value != 'partial' %}checked{% endif %}>

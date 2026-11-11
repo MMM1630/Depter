@@ -11,8 +11,8 @@
     <div class="grow"><b>{{ w.first_name|default:w.username }}</b><small>@{{ w.username }} · {{ w.branch }}</small></div>
     {% if w.is_active %}<span class="chip g">{% t 'st_active' %}</span>{% else %}<span class="chip r">{% t 'st_off' %}</span>{% endif %}
     <a class="btn btn-ghost btn-sm" href="{% url 'worker_update' w.pk %}">{% t 'edit' %}</a>
-    <a class="btn btn-debt btn-sm" href="{% url 'worker_delete' w.pk %}">{% t 'delete' %}</a>
   </div>
   {% empty %}<div class="empty">{% t 'no_workers' %}</div>{% endfor %}
 </div>
+<p class="sub">{% t 'worker_no_delete' %}</p>
 {% endblock %}
